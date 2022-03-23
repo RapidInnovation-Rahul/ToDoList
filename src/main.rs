@@ -1,127 +1,45 @@
 use std::io;
-// use std::fs;
-use std::vec;
-// use serde_json::{Result, Value};
-// use serde::{Serialize, Deserialize};
+use std::fs::File;
+use serde_json::Result;
 use std::collections::HashMap;
+use std::io::BufReader;
 
-use serde::__private::de::Content;
-
-// #[derive(Debug, Deserialize)]
-// #[serde(rename_all = "PascalCase")]
-// #[derive(Serialize, Deserialize)]
-#[derive(Debug)]
-struct User {
-    password: String,
-    todo: Vec<String>,
-}
-// #[derive(Debug, Deserialize)]
-// #[serde(rename_all = "PascalCase")]
-// struct Address {
-//     street: String,
-//     city: String,
-//     country: String,
-// }
+mod todo;
+use crate::todo::User;
+use crate::todo::{add_user, add_content, delete_content, edit_content, empty_todo};
 
 
-// impl User {
-//     fn is_exist(&self, username: String) -> bool{
-//         let user = self.get(username);
-//     }
-// }
+// Reading the dataset
+fn read_dataset(path: String) -> Result<HashMap<String, User>> {
+    let file = File::open(path).expect("Failed to load file");
+    let reader = BufReader::new(file);
+    let dataset: HashMap<String, User> = serde_json::from_reader(reader)?;
 
-
-fn addUser(data: &mut HashMap<String, User>, username: String, password: String) {
-    let user_data = User {
-        password: password,
-        todo: vec![],
-    };
-    data.insert(username, user_data);
+    Ok(dataset)
 }
 
-fn addContent(data: &mut HashMap<String, User>, username: String, content: String){
-    let user = data.get(&username).unwrap();
-    let mut todo = &mut user.todo.clone();
-    todo.push(content);
-    let user_data = User {
-        password: user.password.clone(),
-        todo: todo.to_vec(),
-    };
-    data.insert(username, user_data);
-    println!("Your new todo list: {:?}", &todo);
-}
-
-fn deleteContent(data: &mut HashMap<String, User>, username: String, idx: usize){
-    let user = data.get(&username).unwrap();
-    let mut todo = &mut user.todo.clone();
-    todo.remove(idx);
-    let user_data = User {
-        password: user.password.clone(),
-        todo: todo.to_vec(),
-    };
-    data.insert(username, user_data);
-    println!("Your new todo list: {:?}", &todo);
-}
-
-fn editContent(data: &mut HashMap<String, User>, username: String, idx: usize, content: String){
-    let user = data.get(&username).unwrap();
-    let mut todo = &mut user.todo.clone();
-    std::mem::replace(&mut todo[idx], content);
-    let user_data = User {
-        password: user.password.clone(),
-        todo: todo.to_vec(),
-    };
-    data.insert(username, user_data);
-    println!("Your new todo list: {:?}", &todo);
-}
-
-
-fn emptyTodo(data: &mut HashMap<String, User>, username: String){
-    let user_data = User {
-        password: username.clone(),
-        todo: vec![],
-    };
-    data.insert(username, user_data);
-    println!("Your todo list is empty!");
+// saving the dataset
+fn save_dataset(path: String, dataset: &HashMap<String, User>) {
+    let file = File::create(path).unwrap();
+    serde_json::to_writer(file, &dataset).expect("Falied to save data!");
 }
 
 
 fn main() {
-    let mut data = HashMap::new();
+    let mut dataset = read_dataset(String::from("dataset.json")).unwrap();
 
-    let user1 = User {
-        password: String::from("password1"),
-        todo: vec![String::from("todo1"), String::from("todo2")],
-    };
+    // for (key, value) in &dataset {
+    //     println!("{}: {:?}", key, value);
+    // }
 
-    let user2 = User {
-        password: String::from("password1"),
-        todo: vec![String::from("todo1"), String::from("todo2")],
-    };
-    let user3 = User {
-        password: String::from("password1"),
-        todo: vec![String::from("todo1"), String::from("todo2")],
-    };
-    data.insert(String::from("user1"), user1);
-    data.insert(String::from("user2"), user2);
-    data.insert(String::from("user3"), user3);
-
-    for (key, value) in &data {
-        println!("{}: {:?}", key, value);
-    }
-
-
-    // let username = String::from("user4");
-    // println!("your username: {}", &username);
-    
     println!("Please enter username:- ");
     let mut username = String::new();
     io::stdin().read_line(&mut username).expect("failed to read the data");
     println!("your username: {}", &username);
 
     username = username.trim_end().to_string();
-    let user = data.get(&username);
-    // println!("{:?}", &user);
+    let user = dataset.get(&username);
+    // // println!("{:?}", &user);
 
     // Pattern match to retrieve the value
     match user {
@@ -142,7 +60,8 @@ fn main() {
                     let mut content = String::new();
                     io::stdin().read_line(&mut content).expect("failed to read the data");
                     content = content.trim_end().to_string();
-                    addContent(&mut data, username, content);
+                    add_content(&mut dataset, username, content);
+                    save_dataset(String::from("dataset.json"), &dataset);
                 }
                 else if action.trim_end().to_lowercase() == "delete"{
                     println!("Here is your current todo list: {:?}", &x.todo);
@@ -152,7 +71,8 @@ fn main() {
                     idx = idx.trim_end().to_string();
                     let idx = idx.parse::<i32>().unwrap() - 1;
                     let idx = idx.try_into().unwrap();
-                    deleteContent(&mut data, username, idx);
+                    delete_content(&mut dataset, username, idx);
+                    save_dataset(String::from("dataset.json"), &dataset);
                 }
                 else if action.trim_end().to_lowercase() == "edit"{
                     println!("Here is your current todo list: {:?}", &x.todo);
@@ -166,11 +86,14 @@ fn main() {
                     let mut content = String::new();
                     io::stdin().read_line(&mut content).expect("failed to read the data");
                     content = content.trim_end().to_string();
-                    editContent(&mut data, username, idx, content);
+                    edit_content(&mut dataset, username, idx, content);
+                    save_dataset(String::from("dataset.json"), &dataset);
                 }
                 else if action.trim_end().to_lowercase() == "empty"{
                     println!("Here is your current todo list: {:?}", &x.todo);
-                    emptyTodo(&mut data, username);
+                    empty_todo(&mut dataset, username);
+                    save_dataset(String::from("dataset.json"), &dataset);
+
                 }
                 else{
                     println!("Please select the right opration!");
@@ -189,41 +112,25 @@ fn main() {
 
             if new_user.trim_end().to_lowercase() == "y" {
                 println!("Please enter username:- ");
-                let mut username = String::new();
-                io::stdin().read_line(&mut username).expect("failed to read the data");
-                println!("Please enter the password");
-                let mut password = String::new();
-                io::stdin().read_line(&mut password).expect("failed to read the data");
-                addUser(&mut data, username.trim_end().to_string(), password.trim_end().to_string());
+                let mut new_username = String::new();
+                io::stdin().read_line(&mut new_username).expect("failed to read the data");
+                new_username = new_username.trim_end().to_string();
+                let new_user = dataset.get(&new_username);
+                match new_user {
+                    Some(_) => println!("{:?} this user already exist, Please provide different username!", &new_username),
+                    None => {
+                        println!("Please enter the password");
+                        let mut password = String::new();
+                        io::stdin().read_line(&mut password).expect("failed to read the data");
+                        add_user(&mut dataset, new_username, password.trim_end().to_string());
+                        save_dataset(String::from("dataset.json"), &dataset);
+                        println!("user created succssefully!");
+                    }
+                }
             }
-
-            // for (key, value) in &data {
-            //     println!("{}: {:?}", key, value);
-            // }
+            else {
+                println!("Please enter a valid option");
+            }
         },
     }
-
-    // if let Some()
-    // println!("{:?}", user)
-
-    // for (key, value) in &data {
-    //     println!("{}: {}", key, value.password);
-    // }
-    // let mut username = String::new();
-
-    // println!("Enter username:-");
-    // io::stdin().read_line(&mut username).expect("failed to read the username");
-    // println!("username is {}", username);
-
-
-    // let json: serde_json::Value =
-    //     serde_json::from_str(the_file).expect("JSON was not well-formatted");
-
-    // let the_file = fs::read_to_string("data.json")
-    //     .expect("Unable to read file");
-
-    // let v: User = serde_json::from_str(&the_file)
-    //     .expect("JSON does not have correct format.");
-    
-    // println!("data: {}", v.username)
 }
