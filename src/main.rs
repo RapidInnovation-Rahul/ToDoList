@@ -28,18 +28,14 @@ fn save_dataset(path: String, dataset: &HashMap<String, User>) {
 fn main() {
     let mut dataset = read_dataset(String::from("dataset.json")).unwrap();
 
-    // for (key, value) in &dataset {
-    //     println!("{}: {:?}", key, value);
-    // }
-
     println!("Please enter username:- ");
     let mut username = String::new();
     io::stdin().read_line(&mut username).expect("failed to read the data");
     println!("your username: {}", &username);
 
     username = username.trim_end().to_string();
-    let user = dataset.get(&username);
-    // // println!("{:?}", &user);
+    // let user = dataset.get(&username);
+    let user = &mut dataset.get_mut(&username);
 
     // Pattern match to retrieve the value
     match user {
@@ -60,7 +56,7 @@ fn main() {
                     let mut content = String::new();
                     io::stdin().read_line(&mut content).expect("failed to read the data");
                     content = content.trim_end().to_string();
-                    add_content(&mut dataset, username, content);
+                    add_content(&mut x.todo, content);
                     save_dataset(String::from("dataset.json"), &dataset);
                 }
                 else if action.trim_end().to_lowercase() == "delete"{
@@ -71,7 +67,7 @@ fn main() {
                     idx = idx.trim_end().to_string();
                     let idx = idx.parse::<i32>().unwrap() - 1;
                     let idx = idx.try_into().unwrap();
-                    delete_content(&mut dataset, username, idx);
+                    delete_content(&mut x.todo, idx);
                     save_dataset(String::from("dataset.json"), &dataset);
                 }
                 else if action.trim_end().to_lowercase() == "edit"{
@@ -86,12 +82,12 @@ fn main() {
                     let mut content = String::new();
                     io::stdin().read_line(&mut content).expect("failed to read the data");
                     content = content.trim_end().to_string();
-                    edit_content(&mut dataset, username, idx, content);
+                    edit_content(&mut x.todo, idx, content);
                     save_dataset(String::from("dataset.json"), &dataset);
                 }
                 else if action.trim_end().to_lowercase() == "empty"{
                     println!("Here is your current todo list: {:?}", &x.todo);
-                    empty_todo(&mut dataset, username);
+                    empty_todo(&mut x.todo);
                     save_dataset(String::from("dataset.json"), &dataset);
 
                 }
