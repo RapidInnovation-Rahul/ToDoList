@@ -14,8 +14,7 @@ pub fn addTask(list: &mut Vec<String>){
 
     list.push(task);
     println!("Your task added successfully");
-    println!("your new to do list is: ");
-    // display(TDList: &Vec<String>)
+    display(list);
 }
 
 pub fn delTask(list: &mut Vec<String>){
@@ -24,11 +23,25 @@ pub fn delTask(list: &mut Vec<String>){
     io::stdin().read_line(&mut index).expect("failed to read index");
     let index = index.trim().parse().unwrap();
     list.remove(index);
-    println!("your new to do list is: ");
+    display(list);
 }
 pub fn empList(list: &mut Vec<String>){ 
     let ele = String::from("None");
     list.retain(|x| *x!= ele);
-    println!("Your updated todo list is: {:?}", list);
+    display(list);
+}
+pub fn display(TDList: &mut Vec<String>){
+    println!("your to do list is: {:?}",TDList);
+    println!("To Modify your To_DO_List select a number from the given list");
+    println!("1. Add Task \n2. Delete Task\n 3. Empty List\n4. Exit");
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).expect("Failed to read your input!!");
+    let i = input.trim().parse().unwrap();
+    match i{
+        1 => addTask(TDList),
+        2 => delTask(TDList),
+        3 => empList(TDList),
+        _ => exit(),
+    }
 }
 pub fn exit(){return}

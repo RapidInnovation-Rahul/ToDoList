@@ -1,27 +1,43 @@
 use std::io;
+use std::fs::File;
+use serde_json::Result;
 use std::collections::HashMap;
+use std::io::BufReader;
+
 mod todo;
 use crate::todo::User;
-use crate::todo::{addTask, delTask, empList, exit};
+use crate::todo::{addTask, delTask, empList, display, exit};
 
-// struct User { // user type
-//     pass: String , // password
-//     list: Vec<String> , // to_do list
-// }
+fn read_dataset(path: String) -> Result<HashMap<String, User>>{
+    let file = File::open(path).expect("Failed to load file");
+    let reader = BufReader::new(file);
+    let dataset: HashMap<String, User> = serde_json::from_reader(reader)?;
+
+    Ok(dataset);
+}
+
+fn save_dataset(path: String, dataset: &HashMap<String, User>){
+    let file = File::create(path).unwrap();
+    serde_json::to_writer(file, &dataset).expect("Failed to save data!");
+}
+
+
 
 #[allow(unused_mut)]
 fn main() {
-    let mut userlist = HashMap::new(); // actual data_base for now
-    let mut rahul = User{
-        pass : String::from("rahul1999"),
-        list : vec![String::from("task1"), String::from("Task2"), String::from("Task3")],
-    };
-    let mut ankit = User{
-        pass: String::from("ankit1998"),
-        list : vec![String::from("Task4"), String::from("Task5"), String::from("Task6")],
-    };
-    userlist.insert(String::from("rahul"), rahul); // adding details to data_base
-    userlist.insert(String::from("ankit"), ankit);
+
+    let mut userlist = read_dataset(String::from("dataset.json")).unwrap();
+    // let mut userlist = HashMap::new(); // actual data_base for now
+    // let mut rahul = User{
+    //     pass : String::from("rahul1999"),
+    //     list : vec![String::from("task1"), String::from("Task2"), String::from("Task3")],
+    // };
+    // let mut ankit = User{
+    //     pass: String::from("ankit1998"),
+    //     list : vec![String::from("Task4"), String::from("Task5"), String::from("Task6")],
+    // };
+    // userlist.insert(String::from("rahul"), rahul); // adding details to data_base
+    // userlist.insert(String::from("ankit"), ankit);
 
     println!("Enter Your User_Name: "); // taking username input
     let mut user_name = String::new();
@@ -81,20 +97,6 @@ fn main() {
                 exit();
             }
         }
-    }
-}
-fn display(TDList: &mut Vec<String>){
-    println!("your Tasks for today: {:?}",TDList);
-    println!("To Modify your To_DO_List select a number from the given list");
-    println!("1. Add Task \n2. Delete Task\n 3. Empty List\n4. Exit");
-    let mut input = String::new();
-    io::stdin().read_line(&mut input).expect("Failed to read your input!!");
-    let i = input.trim().parse().unwrap();
-    match i{
-        1 => addTask(&mut TDList),
-        2 => delTask(&mut  TDList),
-        3 => empList(&mut TDList),
-        _ => exit(),
     }
 }
 
