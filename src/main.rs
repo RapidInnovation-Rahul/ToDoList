@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use std::io;
 use std::fs::File;
 use serde_json::Result;
@@ -6,16 +7,16 @@ use std::io::BufReader;
 
 mod todo;
 use crate::todo::User;
-use crate::todo::{addTask, delTask, empList, display, exit};
+use crate::todo::{display, exit};
 
 fn read_dataset(path: String) -> Result<HashMap<String, User>>{
     let file = File::open(path).expect("Failed to load file");
     let reader = BufReader::new(file);
     let dataset: HashMap<String, User> = serde_json::from_reader(reader)?;
 
-    Ok(dataset);
+    Ok(dataset)
 }
-
+#[allow(dead_code)]
 fn save_dataset(path: String, dataset: &HashMap<String, User>){
     let file = File::create(path).unwrap();
     serde_json::to_writer(file, &dataset).expect("Failed to save data!");
@@ -24,6 +25,7 @@ fn save_dataset(path: String, dataset: &HashMap<String, User>){
 
 
 #[allow(unused_mut)]
+#[allow(non_snake_case)]
 fn main() {
 
     let mut userlist = read_dataset(String::from("dataset.json")).unwrap();
@@ -100,7 +102,7 @@ fn main() {
     }
 }
 
-
+#[allow(non_snake_case)]
 #[allow(unused_mut)]
 fn signUp(data: &mut HashMap<String,User>,userName: String){
     println!("Enter a password for your profile: ");
