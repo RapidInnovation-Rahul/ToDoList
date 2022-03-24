@@ -14,7 +14,7 @@ pub fn addTask(list: &mut Vec<String>){
     let mut task = String::new();
     io::stdin().read_line(&mut task).expect("Failed to read your task!!!");
 
-    list.push(task);
+    list.push(task.trim_end().to_string());
     println!("Your task added successfully");
     display(list);
 }
